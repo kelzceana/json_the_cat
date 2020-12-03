@@ -1,18 +1,21 @@
 const request = require('request');
-const readline = require('readline');
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-let searchBreed = process.argv.slice(2)[1];
-let searchUrl = `${process.argv.slice(2)[0]}?q=${searchBreed}`;
-request(searchUrl, (error, resp, body) => {
-  const data = JSON.parse(body);
-  try {
-    console.log(data[0].description);
-  } catch (err) {
-    console.log(`No ${searchBreed} breed found`);
-  }
-});
+const fetchBreedDescription = function(breedName, callback) {
+  const url = `https://api.thecatapi.com/v1/breeds/search?q=${breedName}`;
+  request(url, (error, resp, body) => {
+    if (error) {
+      callback(`Failed to request details: ${error}`,null);
+    }
+    const data = JSON.parse(body);
+    // console.log(data);
 
-rl.close();
+    const breed = data[0];
+    if (breed) {
+      callback(null, breed.description);
+    } else {
+      callback(`Failed to find breed ${breedName}`,null);
+    }
+  });
+};
+
+module.exports = {fetchBreedDescription};
+
